@@ -110,3 +110,6 @@ functions:
 #     NewOutput:
 #       Description: "Description for the output"
 #       Value: "Some output value"
+# using this plugins for use serverless offline to development ...no need to deploy all thie in aws
+plugins:
+  - serverless-offline

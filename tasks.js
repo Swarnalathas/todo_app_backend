@@ -1,20 +1,28 @@
 const express = require("express");
 const serverless = require("serverless-http");
+const mysql = require("mysql");
 
 const app = express();
 
+const connection  = mysql.createConnection({
+  host: process.env.DB_HOST, // enviroment variable to set
+  user: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME
+});
+connection.connect();
+
 app.get("/tasks",function (request,response) {
-  const username = request.query.username;
-  response.json({
-    //message :"Hello from my tasks from Lambda function"
-    //message : `Username ${username} requested the tasks`
-    tasks:[
-      { Description :"Walk dog",TaskId: 1 , Completed : true , UserId:1},
-      { Description :"Buy Suger",TaskId: 2 , Completed : false , UserId:1},
-      { Description :"Clean Vessel",TaskId: 3 , Completed : false , UserId:1},
-      { Description :"Swimming",TaskId: 4 , Completed : true , UserId:1}
-    ]
-  });
+  connection.query("SELECT * FROM tasks",function(err,result,fields) { 
+    if(err !== null) {
+      //for debugging purposes
+      console.log("Error fetching tasks",err);
+      //Response to the end client with suitable response
+      //response.status(500).json({ message : "Something went wrong" });
+      response.send(500); //response code 500 means user error
+    }
+    response.json({ tasks: result});
+  });  
 });
 
 module.exports.handler = serverless(app);
