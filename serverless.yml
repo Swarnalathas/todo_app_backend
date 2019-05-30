@@ -63,7 +63,10 @@ functions:
           path: tasks
           method: get
           cors: true
-
+      - http:
+          path: tasks/{id}
+          method: delete
+          cors: true 
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
