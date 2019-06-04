@@ -44,6 +44,21 @@ app.post("/tasks",function (request,response) {
   }); 
 });
 
+app.put("/tasks/:id",function(request,response){
+  const updatedTask = request.params.id;
+  const updateTaskDesc = request.body; 
+  connection.query('UPDATE tasks SET ? WHERE task_id = ?', [updateTaskDesc, updatedTask], function (err, results, fields) {
+    if(err) {      
+      console.log("Error fetching tasks",err);       
+      response.status(500).json({
+        error: err
+      }); 
+    } else {      
+        response.send("Tasks Updated");         
+    }   
+  }); 
+});
+
 app.delete("/tasks/:id",function(request,response){
   const taskId = request.params.id; 
   connection.query("DELETE FROM tasks WHERE task_id = ?",[taskId],function(err,result,fields){
