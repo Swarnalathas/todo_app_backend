@@ -1,8 +1,11 @@
 const express = require("express");
 const serverless = require("serverless-http");
 const mysql = require("mysql");
-
+const cors = require("cors");
 const app = express();
+
+app.use(cors());
+app.use(express.json());
 
 const connection  = mysql.createConnection({
   host: process.env.DB_HOST, // enviroment variable to set
@@ -14,20 +17,35 @@ const connection  = mysql.createConnection({
 
 app.get("/tasks",function (request,response) {
   connection.query("SELECT * FROM tasks",function(err,result,fields) { 
-    if(err !== null) {
-      //for debugging purposes
-      console.log("Error fetching tasks",err);
-      //Response to the end client with suitable response      
-      response.send(500); //response code 500 means user error
+    if(err) {      
+      console.log("Error fetching tasks",err);       
+      response.status(500).json({
+        error: err
+      }); 
     } else {
       response.json({ tasks: result});
     }   
   });  
 });
 
+app.post("/tasks",function (request,response) {
+  const taskToBeSaved = request.body;    
+  connection.query('INSERT INTO tasks SET ?',taskToBeSaved, function (err, results, fields) {
+    if(err) {      
+      console.log("Error fetching tasks",err);       
+      response.status(500).json({
+        error: err
+      }); 
+    } else {
+      response.json({ 
+        task_id: results.insertId
+        });      
+    }   
+  }); 
+});
+
 app.delete("/tasks/:id",function(request,response){
-  const taskId = request.params.id;
-  console.log(taskId);
+  const taskId = request.params.id; 
   connection.query("DELETE FROM tasks WHERE task_id = ?",[taskId],function(err,result,fields){
     if(err !== null) {
       console.log("something went wrond deleting the task",err );
@@ -35,11 +53,7 @@ app.delete("/tasks/:id",function(request,response){
     } else {
     response.send("Item Deleted");
     }
-  });
-  //delete the task from database 
-  //respond with a 200 status code
- 
-
+  });  
 });
 
 module.exports.handler = serverless(app);
